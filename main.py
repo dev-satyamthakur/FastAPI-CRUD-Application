@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import Body, FastAPI
+from fastapi import Body, FastAPI, Response, status, HTTPException
 from pydantic import BaseModel
 from random import randrange
 
@@ -31,6 +31,13 @@ async def root():
 async def get_posts():
     return my_posts
 
+@app.get("/posts/{id}")
+async def get_post(id: int, response: Response):
+    post = find_post(int(id))
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="post not found")
+    return post
+
 @app.post("/posts")
 async def create_posts(post: Post):
     post_dict = post.dict()
@@ -38,7 +45,3 @@ async def create_posts(post: Post):
     my_posts.append(post_dict)
     return {"data" : post_dict}
 
-@app.get("/posts/{id}")
-async def get_post(id):
-    post = find_post(int(id))
-    return post
