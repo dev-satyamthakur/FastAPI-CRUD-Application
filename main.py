@@ -38,7 +38,7 @@ async def get_post(id: int, response: Response):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="post not found")
     return post
 
-@app.post("/posts")
+@app.post("/posts", status_code=status.HTTP_201_CREATED)
 async def create_posts(post: Post):
     post_dict = post.dict()
     post_dict["id"] = randrange(0, 10000000)
