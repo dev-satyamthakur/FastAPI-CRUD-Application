@@ -50,9 +50,9 @@ async def create_posts(post: Post):
     my_posts.append(post_dict)
     return {"data" : post_dict}
 
-@app.delete("/posts/{id}")
-async def delete_post(id):
-    index = find_index_post(int(id))
-    my_posts.pop(int(index))
-    return {"message" : "post deleted successfully"}
+@app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_post(id: int):
+    index = find_index_post(id)
+    my_posts.pop(index)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
