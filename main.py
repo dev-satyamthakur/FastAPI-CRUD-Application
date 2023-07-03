@@ -19,6 +19,11 @@ def find_post(id):
     for i in my_posts:
         if i["id"] == id:
             return i
+        
+def find_index_post(id):
+    for i, p in enumerate(my_posts):
+        if p['id'] == id:
+            return i
 
 @app.get("/")
 async def root():
@@ -44,4 +49,10 @@ async def create_posts(post: Post):
     post_dict["id"] = randrange(0, 10000000)
     my_posts.append(post_dict)
     return {"data" : post_dict}
+
+@app.delete("/posts/{id}")
+async def delete_post(id):
+    index = find_index_post(int(id))
+    my_posts.pop(int(index))
+    return {"message" : "post deleted successfully"}
 
