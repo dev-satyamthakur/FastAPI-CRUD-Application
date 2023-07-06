@@ -63,10 +63,9 @@ async def get_post(id: int, response: Response):
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
 async def create_posts(post: Post):
-    post_dict = post.dict()
-    post_dict["id"] = randrange(0, 10000000)
-    my_posts.append(post_dict)
-    return {"data" : post_dict}
+    cursor.execute("""INSERT INTO post (title, content, published) VALUES (%s, %s, %s)""", 
+                   (post.title, post.content, post.published))    
+    return {"data" : "post created"}
 
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_post(id: int):
