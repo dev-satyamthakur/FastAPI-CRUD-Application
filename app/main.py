@@ -10,7 +10,6 @@ class Post(BaseModel):
     title: str
     content: str
     published: bool = True
-    rating: Optional[int] = None
 
 my_posts = [{"title" : "Famous places in India", "content" : "Checkout these places in India", "id" : 1}, 
             {"title" : "Best food stalls in Delhi", "content" : "Find delicious food in Delhi", "id" : 2}]
