@@ -74,19 +74,29 @@ async def create_posts(post: Post):
 
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_post(id: int):
-    index = find_index_post(id)
-    if index == None:
+    cursor.execute("""DELETE FROM post WHERE id = %s RETURNING *""", (str(id), ))
+    deleted_post = cursor.fetchone()
+
+    # committing deleted post
+    conn.commit()
+
+    print(deleted_post)
+    if delete_post == None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id {id} does not exist")
-    my_posts.pop(index)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @app.put("/posts/{id}")
 async def update_post(id: int, post: Post):
-    index = find_index_post(id)
-    if index is None:
+    
+    cursor.execute("""UPDATE post SET title = %s, content = %s, published = %s WHERE id = %s RETURNING *""",
+                   (post.title, post.content, str(post.published), str(id), ))
+
+    updated_post = cursor.fetchone()
+
+    # Committing
+    conn.commit()
+    
+    if updated_post is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id {id} does not exist") 
-    post_dict = post.dict()
-    post_dict['id'] = id
-    my_posts[index] = post_dict
-    return {"data" : post_dict}
+    return {"message" : "updated successfully", "data" : updated_post}
 
