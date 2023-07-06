@@ -49,7 +49,10 @@ async def root():
 
 @app.get("/posts")
 async def get_posts():
-    return my_posts
+    cursor.execute("""SELECT * FROM post""")
+    posts = cursor.fetchall()
+    print(posts)
+    return posts
 
 @app.get("/posts/{id}")
 async def get_post(id: int, response: Response):
