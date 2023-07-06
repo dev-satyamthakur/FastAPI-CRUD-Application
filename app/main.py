@@ -56,16 +56,21 @@ async def get_posts():
 
 @app.get("/posts/{id}")
 async def get_post(id: int, response: Response):
-    post = find_post(int(id))
+    cursor.execute("""SELECT * FROM post WHERE id = %s""", (str(id), ))
+    post = cursor.fetchone()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="post not found")
     return post
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
 async def create_posts(post: Post):
-    cursor.execute("""INSERT INTO post (title, content, published) VALUES (%s, %s, %s)""", 
+    cursor.execute("""INSERT INTO post (title, content, published) VALUES (%s, %s, %s) RETURNING *""", 
                    (post.title, post.content, post.published))    
-    return {"data" : "post created"}
+    db_response = cursor.fetchall()
+
+    conn.commit()  # commiting to database
+
+    return {"data" : db_response}
 
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_post(id: int):
