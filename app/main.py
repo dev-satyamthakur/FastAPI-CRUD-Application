@@ -1,25 +1,18 @@
 from typing import Optional
-from fastapi import Body, FastAPI, Response, status, HTTPException
+from fastapi import Body, FastAPI, Response, status, HTTPException, Depends
 from pydantic import BaseModel
 from random import randrange
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import time
 from . import models
-from .database import engine, SessionLocal
+from .database import engine, get_db
+from sqlalchemy.orm import Session
 
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-
-# Dependency
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 # Creating a model class for create post request
 class Post(BaseModel):
@@ -52,6 +45,10 @@ def find_index_post(id):
     for i, p in enumerate(my_posts):
         if p['id'] == id:
             return i
+        
+@app.get("/sql")
+async def sql(db: Session = Depends(get_db)):
+    return {"status" : "success"}
 
 @app.get("/")
 async def root():
