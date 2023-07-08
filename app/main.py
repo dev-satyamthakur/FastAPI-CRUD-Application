@@ -67,9 +67,11 @@ async def get_posts(db: Session = Depends(get_db)):
     return posts
 
 @app.get("/posts/{id}")
-async def get_post(id: int, response: Response):
-    cursor.execute("""SELECT * FROM post WHERE id = %s""", (str(id), ))
-    post = cursor.fetchone()
+async def get_post(id: int, response: Response, db: Session = Depends(get_db)):
+    # cursor.execute("""SELECT * FROM post WHERE id = %s""", (str(id), ))
+    # post = cursor.fetchone()
+    post = db.query(models.Post).filter(models.Post.id == id).first()
+
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="post not found")
     return post
