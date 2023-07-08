@@ -48,7 +48,8 @@ def find_index_post(id):
         
 @app.get("/sql")
 async def sql(db: Session = Depends(get_db)):
-    return {"status" : "success"}
+    posts = db.query(models.Post).all()
+    return {"status" : posts}
 
 @app.get("/")
 async def root():
@@ -58,10 +59,11 @@ async def root():
         }
 
 @app.get("/posts")
-async def get_posts():
-    cursor.execute("""SELECT * FROM post""")
-    posts = cursor.fetchall()
-    print(posts)
+async def get_posts(db: Session = Depends(get_db)):
+    # cursor.execute("""SELECT * FROM post""")
+    # posts = cursor.fetchall()
+    # print(posts)
+    posts = db.query(models.Post).all()
     return posts
 
 @app.get("/posts/{id}")
