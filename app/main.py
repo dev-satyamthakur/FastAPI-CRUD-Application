@@ -71,7 +71,6 @@ async def get_post(id: int, response: Response, db: Session = Depends(get_db)):
     # cursor.execute("""SELECT * FROM post WHERE id = %s""", (str(id), ))
     # post = cursor.fetchone()
     post = db.query(models.Post).filter(models.Post.id == id).first()
-
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="post not found")
     return post
@@ -90,16 +89,22 @@ async def create_posts(post: Post, db: Session = Depends(get_db)):
     return {"data" : db_response}
 
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_post(id: int):
-    cursor.execute("""DELETE FROM post WHERE id = %s RETURNING *""", (str(id), ))
-    deleted_post = cursor.fetchone()
+async def delete_post(id: int, db: Session = Depends(get_db)):
+    # cursor.execute("""DELETE FROM post WHERE id = %s RETURNING *""", (str(id), ))
+    # deleted_post = cursor.fetchone()
 
-    # committing deleted post
-    conn.commit()
+    # # committing deleted post
+    # conn.commit()
 
-    print(deleted_post)
-    if delete_post == None:
+    post_to_del = db.query(models.Post).filter(models.Post.id == id)
+
+    if post_to_del.first() == None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id {id} does not exist")
+    
+    post_to_del.delete(synchronize_session=False)
+
+    db.commit()
+
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @app.put("/posts/{id}")
