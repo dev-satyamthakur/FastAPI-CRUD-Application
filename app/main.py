@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from fastapi import Body, FastAPI, Response, status, HTTPException, Depends
 from random import randrange
 from . import models
@@ -18,7 +18,7 @@ async def root():
             "name" : "neo"
         }
 
-@app.get("/posts")
+@app.get("/posts", response_model=List[schemas.PostResponse])
 async def get_posts(db: Session = Depends(get_db)):
     # cursor.execute("""SELECT * FROM post""")
     # posts = cursor.fetchall()
@@ -26,7 +26,7 @@ async def get_posts(db: Session = Depends(get_db)):
     posts = db.query(models.Post).all()
     return posts
 
-@app.get("/posts/{id}")
+@app.get("/posts/{id}", response_model=schemas.PostResponse)
 async def get_post(id: int, response: Response, db: Session = Depends(get_db)):
     # cursor.execute("""SELECT * FROM post WHERE id = %s""", (str(id), ))
     # post = cursor.fetchone()
@@ -67,7 +67,7 @@ async def delete_post(id: int, db: Session = Depends(get_db)):
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
-@app.put("/posts/{id}")
+@app.put("/posts/{id}", response_model=schemas.PostResponse)
 async def update_post(id: int, post: schemas.Post, db: Session = Depends(get_db)):
     
     # cursor.execute("""UPDATE post SET title = %s, content = %s, published = %s WHERE id = %s RETURNING *""",

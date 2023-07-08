@@ -7,11 +7,8 @@ class Post(BaseModel):
     content: str
     published: bool = True
 
-class PostResponse(BaseModel):
+class PostResponse(Post):
     id: int
-    title: str
-    content: str
-    published: bool
     created_at: datetime
 
     class Config:
