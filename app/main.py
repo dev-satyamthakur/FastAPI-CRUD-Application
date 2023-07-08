@@ -35,7 +35,7 @@ async def get_post(id: int, response: Response, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="post not found")
     return post
 
-@app.post("/posts", status_code=status.HTTP_201_CREATED)
+@app.post("/posts", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse)
 async def create_posts(post: schemas.Post, db: Session = Depends(get_db)):
     # cursor.execute("""INSERT INTO post (title, content, published) VALUES (%s, %s, %s) RETURNING *""", 
     #                (post.title, post.content, post.published))    
@@ -46,7 +46,7 @@ async def create_posts(post: schemas.Post, db: Session = Depends(get_db)):
     db.add(db_response)
     db.commit()
     db.refresh(db_response)
-    return {"data" : db_response}
+    return db_response
 
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_post(id: int, db: Session = Depends(get_db)):
@@ -87,5 +87,5 @@ async def update_post(id: int, post: schemas.Post, db: Session = Depends(get_db)
     post_update_query.update(post.dict(), synchronize_session=False)
     db.commit()
 
-    return {"message" : "updated successfully", "data" : post_update_query.first()}
+    return post_update_query.first()
 
