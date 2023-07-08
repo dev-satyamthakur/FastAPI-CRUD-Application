@@ -108,17 +108,24 @@ async def delete_post(id: int, db: Session = Depends(get_db)):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @app.put("/posts/{id}")
-async def update_post(id: int, post: Post):
+async def update_post(id: int, post: Post, db: Session = Depends(get_db)):
     
-    cursor.execute("""UPDATE post SET title = %s, content = %s, published = %s WHERE id = %s RETURNING *""",
-                   (post.title, post.content, str(post.published), str(id), ))
+    # cursor.execute("""UPDATE post SET title = %s, content = %s, published = %s WHERE id = %s RETURNING *""",
+    #                (post.title, post.content, str(post.published), str(id), ))
 
-    updated_post = cursor.fetchone()
+    # updated_post = cursor.fetchone()
 
-    # Committing
-    conn.commit()
-    
+    # # Committing
+    # conn.commit()
+
+    post_update_query = db.query(models.Post).filter(models.Post.id == id)
+    updated_post = post_update_query.first()
+
     if updated_post is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id {id} does not exist") 
-    return {"message" : "updated successfully", "data" : updated_post}
+    
+    post_update_query.update(post.dict(), synchronize_session=False)
+    db.commit()
+
+    return {"message" : "updated successfully", "data" : post_update_query.first()}
 
