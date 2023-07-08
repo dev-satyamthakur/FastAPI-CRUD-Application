@@ -1,11 +1,8 @@
 from typing import Optional
 from fastapi import Body, FastAPI, Response, status, HTTPException, Depends
-from pydantic import BaseModel
 from random import randrange
-import psycopg2
-from psycopg2.extras import RealDictCursor
-import time
 from . import models
+from . import schemas
 from .database import engine, get_db
 from sqlalchemy.orm import Session
 
@@ -13,43 +10,6 @@ from sqlalchemy.orm import Session
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-
-# Creating a model class for create post request
-class Post(BaseModel):
-    title: str
-    content: str
-    published: bool = True
-
-# Setting up connnection with database
-while True:
-    try:    
-        conn = psycopg2.connect(host='localhost', database='fastapi', user='postgres', 
-                                password='pass', cursor_factory=RealDictCursor)
-        cursor = conn.cursor()
-        print("Database connected successfully")
-        break
-    except Exception as e:
-        print("Database connection failed - ")
-        print("Error : " + str(e))
-        time.sleep(2)
-
-my_posts = [{"title" : "Famous places in India", "content" : "Checkout these places in India", "id" : 1}, 
-            {"title" : "Best food stalls in Delhi", "content" : "Find delicious food in Delhi", "id" : 2}]
-
-def find_post(id):
-    for i in my_posts:
-        if i["id"] == id:
-            return i
-        
-def find_index_post(id):
-    for i, p in enumerate(my_posts):
-        if p['id'] == id:
-            return i
-        
-@app.get("/sql")
-async def sql(db: Session = Depends(get_db)):
-    posts = db.query(models.Post).all()
-    return {"status" : posts}
 
 @app.get("/")
 async def root():
@@ -76,7 +36,7 @@ async def get_post(id: int, response: Response, db: Session = Depends(get_db)):
     return post
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
-async def create_posts(post: Post, db: Session = Depends(get_db)):
+async def create_posts(post: schemas.Post, db: Session = Depends(get_db)):
     # cursor.execute("""INSERT INTO post (title, content, published) VALUES (%s, %s, %s) RETURNING *""", 
     #                (post.title, post.content, post.published))    
     # db_response = cursor.fetchall()
@@ -108,7 +68,7 @@ async def delete_post(id: int, db: Session = Depends(get_db)):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @app.put("/posts/{id}")
-async def update_post(id: int, post: Post, db: Session = Depends(get_db)):
+async def update_post(id: int, post: schemas.Post, db: Session = Depends(get_db)):
     
     # cursor.execute("""UPDATE post SET title = %s, content = %s, published = %s WHERE id = %s RETURNING *""",
     #                (post.title, post.content, str(post.published), str(id), ))
