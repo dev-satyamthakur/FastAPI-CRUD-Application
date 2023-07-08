@@ -75,13 +75,16 @@ async def get_post(id: int, response: Response):
     return post
 
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
-async def create_posts(post: Post):
-    cursor.execute("""INSERT INTO post (title, content, published) VALUES (%s, %s, %s) RETURNING *""", 
-                   (post.title, post.content, post.published))    
-    db_response = cursor.fetchall()
+async def create_posts(post: Post, db: Session = Depends(get_db)):
+    # cursor.execute("""INSERT INTO post (title, content, published) VALUES (%s, %s, %s) RETURNING *""", 
+    #                (post.title, post.content, post.published))    
+    # db_response = cursor.fetchall()
 
-    conn.commit()  # commiting to database
-
+    # conn.commit()  # commiting to database
+    db_response = models.Post(**post.dict())
+    db.add(db_response)
+    db.commit()
+    db.refresh(db_response)
     return {"data" : db_response}
 
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
