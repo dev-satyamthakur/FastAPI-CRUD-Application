@@ -5,9 +5,11 @@ from ..database import get_db
 from sqlalchemy.orm import Session
 from ..utils import pwd_context as pass_hasher
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/posts"
+)
 
-@router.get("/posts", response_model=List[schemas.PostResponse])
+@router.get("/", response_model=List[schemas.PostResponse])
 async def get_posts(db: Session = Depends(get_db)):
     # cursor.execute("""SELECT * FROM post""")
     # posts = cursor.fetchall()
@@ -15,7 +17,7 @@ async def get_posts(db: Session = Depends(get_db)):
     posts = db.query(models.Post).all()
     return posts
 
-@router.get("/posts/{id}", response_model=schemas.PostResponse)
+@router.get("/{id}", response_model=schemas.PostResponse)
 async def get_post(id: int, response: Response, db: Session = Depends(get_db)):
     # cursor.execute("""SELECT * FROM post WHERE id = %s""", (str(id), ))
     # post = cursor.fetchone()
@@ -24,7 +26,7 @@ async def get_post(id: int, response: Response, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="post not found")
     return post
 
-@router.post("/posts", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse)
 async def create_posts(post: schemas.Post, db: Session = Depends(get_db)):
     # cursor.execute("""INSERT INTO post (title, content, published) VALUES (%s, %s, %s) RETURNING *""", 
     #                (post.title, post.content, post.published))    
@@ -37,7 +39,7 @@ async def create_posts(post: schemas.Post, db: Session = Depends(get_db)):
     db.refresh(db_response)
     return db_response
 
-@router.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_post(id: int, db: Session = Depends(get_db)):
     # cursor.execute("""DELETE FROM post WHERE id = %s RETURNING *""", (str(id), ))
     # deleted_post = cursor.fetchone()
@@ -56,7 +58,7 @@ async def delete_post(id: int, db: Session = Depends(get_db)):
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
-@router.put("/posts/{id}", response_model=schemas.PostResponse)
+@router.put("/{id}", response_model=schemas.PostResponse)
 async def update_post(id: int, post: schemas.Post, db: Session = Depends(get_db)):
     
     # cursor.execute("""UPDATE post SET title = %s, content = %s, published = %s WHERE id = %s RETURNING *""",
