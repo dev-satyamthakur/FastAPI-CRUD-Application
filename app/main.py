@@ -5,7 +5,7 @@ from . import models
 from . import schemas
 from .database import engine, get_db
 from sqlalchemy.orm import Session
-
+from .utils import pwd_context as pass_hasher
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -91,10 +91,18 @@ async def update_post(id: int, post: schemas.Post, db: Session = Depends(get_db)
 
 @app.post("/users", status_code=status.HTTP_201_CREATED, response_model=schemas.UserResponse)
 async def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    new_user = models.User(**user.dict())
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
+
+    # Hash the password
+    hashed_pass = pass_hasher.hash(user.password)
+    user.password = hashed_pass
+
+    try:
+        new_user = models.User(**user.dict())
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"User already exists with email {user.email}")
     return new_user
 
 
