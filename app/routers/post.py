@@ -6,7 +6,8 @@ from sqlalchemy.orm import Session
 from ..utils import pwd_context as pass_hasher
 
 router = APIRouter(
-    prefix="/posts"
+    prefix="/posts",
+    tags=["Posts"]
 )
 
 @router.get("/", response_model=List[schemas.PostResponse])
