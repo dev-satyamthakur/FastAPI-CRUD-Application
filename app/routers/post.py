@@ -20,7 +20,7 @@ async def get_posts(db: Session = Depends(get_db)):
     return posts
 
 @router.get("/{id}", response_model=schemas.PostResponse)
-async def get_post(id: int, response: Response, db: Session = Depends(get_db)):
+async def get_post(id: int, response: Response, db: Session = Depends(get_db), user_id: int = Depends(oauth2.get_current_user)):
     # cursor.execute("""SELECT * FROM post WHERE id = %s""", (str(id), ))
     # post = cursor.fetchone()
     post = db.query(models.Post).filter(models.Post.id == id).first()
