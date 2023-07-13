@@ -35,8 +35,8 @@ async def create_posts(post: schemas.Post, db: Session = Depends(get_db), curren
     # db_response = cursor.fetchall()
 
     # conn.commit()  # commiting to database
-    print(current_user.email)
-    db_response = models.Post(**post.dict())
+    
+    db_response = models.Post(owner_id=current_user.id, **post.dict())
     db.add(db_response)
     db.commit()
     db.refresh(db_response)
