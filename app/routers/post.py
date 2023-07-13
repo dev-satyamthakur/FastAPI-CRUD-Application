@@ -35,7 +35,7 @@ async def create_posts(post: schemas.Post, db: Session = Depends(get_db), curren
     # db_response = cursor.fetchall()
 
     # conn.commit()  # commiting to database
-    
+
     db_response = models.Post(owner_id=current_user.id, **post.dict())
     db.add(db_response)
     db.commit()
@@ -51,9 +51,14 @@ async def delete_post(id: int, db: Session = Depends(get_db), current_user: int 
     # conn.commit()
 
     post_to_del = db.query(models.Post).filter(models.Post.id == id)
+    post = post_to_del.first()
 
     if post_to_del.first() == None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id {id} does not exist")
+
+    if post.owner_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Not Allowed to perform requested action")
+
     
     post_to_del.delete(synchronize_session=False)
 
@@ -77,6 +82,9 @@ async def update_post(id: int, post: schemas.Post, db: Session = Depends(get_db)
 
     if updated_post is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id {id} does not exist") 
+    
+    if updated_post.owner_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Not Allowed to perform requested action")
     
     post_update_query.update(post.dict(), synchronize_session=False)
     db.commit()
