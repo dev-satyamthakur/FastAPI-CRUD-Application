@@ -20,7 +20,7 @@ async def get_posts(db: Session = Depends(get_db)):
     return posts
 
 @router.get("/{id}", response_model=schemas.PostResponse)
-async def get_post(id: int, response: Response, db: Session = Depends(get_db), user_id: int = Depends(oauth2.get_current_user)):
+async def get_post(id: int, response: Response, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     # cursor.execute("""SELECT * FROM post WHERE id = %s""", (str(id), ))
     # post = cursor.fetchone()
     post = db.query(models.Post).filter(models.Post.id == id).first()
@@ -29,13 +29,13 @@ async def get_post(id: int, response: Response, db: Session = Depends(get_db), u
     return post
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse)
-async def create_posts(post: schemas.Post, db: Session = Depends(get_db), user_id: int = Depends(oauth2.get_current_user)):
+async def create_posts(post: schemas.Post, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     # cursor.execute("""INSERT INTO post (title, content, published) VALUES (%s, %s, %s) RETURNING *""", 
     #                (post.title, post.content, post.published))    
     # db_response = cursor.fetchall()
 
     # conn.commit()  # commiting to database
-    print(user_id)
+    print(current_user.email)
     db_response = models.Post(**post.dict())
     db.add(db_response)
     db.commit()
@@ -43,7 +43,7 @@ async def create_posts(post: schemas.Post, db: Session = Depends(get_db), user_i
     return db_response
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_post(id: int, db: Session = Depends(get_db), user_id: int = Depends(oauth2.get_current_user)):
+async def delete_post(id: int, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     # cursor.execute("""DELETE FROM post WHERE id = %s RETURNING *""", (str(id), ))
     # deleted_post = cursor.fetchone()
 
@@ -62,7 +62,7 @@ async def delete_post(id: int, db: Session = Depends(get_db), user_id: int = Dep
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @router.put("/{id}", response_model=schemas.PostResponse)
-async def update_post(id: int, post: schemas.Post, db: Session = Depends(get_db), user_id: int = Depends(oauth2.get_current_user)):
+async def update_post(id: int, post: schemas.Post, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     
     # cursor.execute("""UPDATE post SET title = %s, content = %s, published = %s WHERE id = %s RETURNING *""",
     #                (post.title, post.content, str(post.published), str(id), ))
