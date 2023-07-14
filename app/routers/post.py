@@ -35,6 +35,11 @@ async def get_post(id: int, response: Response, db: Session = Depends(get_db), c
     post = db.query(models.Post).filter(models.Post.id == id).first()
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="post not found")
+
+    # Making user to get only his posts with an id
+    if post.owner_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Not Allowed to perform requested action")    
+
     return post
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse)
