@@ -19,6 +19,15 @@ async def get_posts(db: Session = Depends(get_db)):
     posts = db.query(models.Post).all()
     return posts
 
+@router.get("/myposts", response_model=List[schemas.PostResponse])
+async def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
+    # cursor.execute("""SELECT * FROM post""")
+    # posts = cursor.fetchall()
+    # print(posts)
+
+    posts = db.query(models.Post).filter(models.Post.owner_id == current_user.id).all()
+    return posts
+
 @router.get("/{id}", response_model=schemas.PostResponse)
 async def get_post(id: int, response: Response, db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user)):
     # cursor.execute("""SELECT * FROM post WHERE id = %s""", (str(id), ))
