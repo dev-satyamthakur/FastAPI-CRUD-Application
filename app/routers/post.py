@@ -18,6 +18,7 @@ async def get_posts(db: Session = Depends(get_db), limit: int = 10, skip: int = 
     # print(posts)
     print(f"limit = {limit}")
     print(f"skip = {skip}")
+    print(f"search = {search}")
 
     posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
     return posts
