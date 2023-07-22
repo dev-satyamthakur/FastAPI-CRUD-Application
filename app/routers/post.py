@@ -15,12 +15,12 @@ router = APIRouter(
 async def get_posts(db: Session = Depends(get_db), limit: int = 10, skip: int = 0, search: Optional[str] = ""):
     # cursor.execute("""SELECT * FROM post""")
     # posts = cursor.fetchall()
-    # print(posts)
-    print(f"limit = {limit}")
-    print(f"skip = {skip}")
-    print(f"search = {search}")
+    # print(posts)  
 
     posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
+
+    results = db.query(models.Post)
+    print(results)
     return posts
 
 @router.get("/myposts", response_model=List[schemas.PostResponse])
