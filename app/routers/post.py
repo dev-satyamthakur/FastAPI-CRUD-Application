@@ -12,17 +12,37 @@ router = APIRouter(
     tags=["Posts"]
 )
 
-@router.get("/", response_model=List[schemas.PostResponse])
-async def get_posts(db: Session = Depends(get_db), limit: int = 10, skip: int = 0, search: Optional[str] = ""):
-    # cursor.execute("""SELECT * FROM post""")
-    # posts = cursor.fetchall()
-    # print(posts)  
+# @router.get("/", response_model=List[schemas.PostResponse])
+# @router.get("/")
+# async def get_posts(db: Session = Depends(get_db), limit: int = 10, skip: int = 0, search: Optional[str] = ""):
+#     # cursor.execute("""SELECT * FROM post""")
+#     # posts = cursor.fetchall()
+#     # print(posts)  
 
-    posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
+#     posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
 
-    results = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(models.Vote, 
-                                         models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).all()
+#     results = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).join(
+#         models.Vote, models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id).all()
     
+#     print(posts)
+#     return results
+
+@router.get("/")
+async def get_posts(db: Session = Depends(get_db), limit: int = 10, skip: int = 0, search: Optional[str] = ""):
+    query = db.query(models.Post, func.count(models.Vote.post_id).label("votes")).outerjoin(
+        models.Vote, models.Vote.post_id == models.Post.id).group_by(models.Post.id)
+
+    if search:
+        query = query.filter(models.Post.title.contains(search))
+
+    posts_with_vote_counts = query.limit(limit).offset(skip).all()
+
+    results = []
+    for post, vote_count in posts_with_vote_counts:
+        post_data = post.__dict__
+        post_data["votes"] = vote_count
+        results.append(post_data)
+
     return results
 
 @router.get("/myposts", response_model=List[schemas.PostResponse])
