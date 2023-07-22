@@ -3,6 +3,7 @@ from typing import List, Optional
 from fastapi import Response, status, HTTPException, Depends, APIRouter
 from ..database import get_db
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from ..utils import pwd_context as pass_hasher
 from .. import oauth2
 
@@ -19,7 +20,8 @@ async def get_posts(db: Session = Depends(get_db), limit: int = 10, skip: int = 
 
     posts = db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()
 
-    results = db.query(models.Post).join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True)
+    results = db.query(models.Post, func.count(models.Vote.post_id)).join(models.Vote, 
+                                         models.Vote.post_id == models.Post.id, isouter=True).group_by(models.Post.id)
     print(results)
     return posts
 
